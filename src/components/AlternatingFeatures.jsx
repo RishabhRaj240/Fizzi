@@ -1,34 +1,40 @@
 import React, { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import SodaCan from './SodaCan';
+import CanvasErrorBoundary from './CanvasErrorBoundary';
 
 /* Small inline canvas that fits inside the h-64 card slot */
 function CanCard({ flavor }) {
   return (
     <div className="w-full md:w-1/2 h-64 rounded-3xl relative overflow-hidden border border-white/10">
-      <Canvas
-        camera={{ position: [0, 0, 4.5], fov: 38 }}
-        gl={{
-          alpha: true,
-          antialias: true,
-          toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.2,
-        }}
-        style={{ background: 'transparent', width: '100%', height: '100%' }}
-        shadows
-      >
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[5, 8, 5]} intensity={2.5} castShadow />
-        <directionalLight position={[-5, 3, -5]} intensity={0.8} />
-        <spotLight position={[0, 10, -8]} intensity={3} angle={0.4} penumbra={0.5} />
-        <pointLight position={[0, -5, 3]} intensity={0.6} color="#8888ff" />
-        <Environment preset="studio" environmentIntensity={1.5} />
-        <Suspense fallback={null}>
-          <SodaCan flavor={flavor} scale={0.45} position={[0, 0, 0]} />
-        </Suspense>
-      </Canvas>
+      <CanvasErrorBoundary>
+        <Canvas
+          camera={{ position: [0, 0, 4.5], fov: 38 }}
+          gl={{
+            alpha: true,
+            antialias: true,
+            preserveDrawingBuffer: true,
+            powerPreference: 'high-performance',
+            failIfMajorPerformanceCaveat: false,
+            toneMapping: THREE.ACESFilmicToneMapping,
+            toneMappingExposure: 1.2,
+          }}
+          dpr={[1, 2]}
+          frameloop="always"
+          shadows={false}
+          style={{ background: 'transparent', width: '100%', height: '100%' }}
+        >
+          <ambientLight intensity={0.6} />
+          <directionalLight position={[5, 8, 5]} intensity={2.5} />
+          <directionalLight position={[-5, 3, -5]} intensity={0.8} />
+          <spotLight position={[0, 10, -8]} intensity={3} angle={0.4} penumbra={0.5} />
+          <pointLight position={[0, -5, 3]} intensity={0.6} color="#8888ff" />
+          <Suspense fallback={null}>
+            <SodaCan flavor={flavor} scale={0.45} position={[0, 0, 0]} />
+          </Suspense>
+        </Canvas>
+      </CanvasErrorBoundary>
     </div>
   );
 }

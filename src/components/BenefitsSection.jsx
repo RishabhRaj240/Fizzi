@@ -1,23 +1,20 @@
 import React, { useRef, useEffect, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import SodaCan from './SodaCan';
+import CanvasErrorBoundary from './CanvasErrorBoundary';
 
-gsap.registerPlugin(ScrollTrigger);
-
-/* ─── Shared lights / env ─────────────────────────────────────────────── */
+/* ─── Shared lights ───────────────────────────────────────────────────── */
 function Lights() {
   return (
     <>
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[5, 8, 5]} intensity={2.5} castShadow />
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[5, 8, 5]} intensity={2.5} />
       <directionalLight position={[-5, 3, -5]} intensity={0.8} />
       <spotLight position={[0, 10, -8]} intensity={3} angle={0.4} penumbra={0.5} />
       <pointLight position={[0, -5, 3]} intensity={0.6} color="#8888ff" />
-      <Environment preset="studio" environmentIntensity={1.5} />
     </>
   );
 }
@@ -42,6 +39,11 @@ function Panel({ id, bg, textSide, accentColor, title, body, animStartX, animEnd
   const proxy = useRef({ x: animEndX }); // rest position
 
   useEffect(() => {
+    // Register here — safe for Vite (client-only) but also guards against
+    // any environment where window isn't ready yet.
+    if (typeof window === 'undefined') return;
+    gsap.registerPlugin(ScrollTrigger);
+
     proxy.current.x = animStartX; // off-screen start
 
     const tween = gsap.to(proxy.current, {
@@ -72,20 +74,27 @@ function Panel({ id, bg, textSide, accentColor, title, body, animStartX, animEnd
     >
       {/* 3D Canvas — full section, pointer-events off */}
       <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 5 }}>
-        <Canvas
-          camera={{ position: [0, 0, 6], fov: 40 }}
-          gl={{
-            alpha: true,
-            antialias: true,
-            toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 1.2,
-          }}
-          style={{ background: 'transparent', width: '100%', height: '100%' }}
-          shadows
-        >
-          <Lights />
-          <MovingCan proxy={proxy} flavor={flavor} />
-        </Canvas>
+        <CanvasErrorBoundary>
+          <Canvas
+            camera={{ position: [0, 0, 6], fov: 40 }}
+            gl={{
+              alpha: true,
+              antialias: true,
+              preserveDrawingBuffer: true,
+              powerPreference: 'high-performance',
+              failIfMajorPerformanceCaveat: false,
+              toneMapping: THREE.ACESFilmicToneMapping,
+              toneMappingExposure: 1.2,
+            }}
+            dpr={[1, 2]}
+            frameloop="always"
+            shadows={false}
+            style={{ background: 'transparent', width: '100%', height: '100%' }}
+          >
+            <Lights />
+            <MovingCan proxy={proxy} flavor={flavor} />
+          </Canvas>
+        </CanvasErrorBoundary>
       </div>
 
       {/* Text card */}

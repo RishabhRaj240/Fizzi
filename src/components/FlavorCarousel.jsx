@@ -1,10 +1,10 @@
 import React, { useState, Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import SodaCan from './SodaCan';
+import CanvasErrorBoundary from './CanvasErrorBoundary';
 
 const flavors = [
   { name: 'Black Cherry', key: 'blackcherry', bg: '#3D0066', accent: '#FF2D78' },
@@ -71,39 +71,45 @@ export default function FlavorCarousel() {
     >
       {/* ── 3D Canvas ── */}
       <div className="absolute inset-0 z-10 pointer-events-none">
-        <Canvas
-          camera={{ position: [0, 0, 6], fov: 40 }}
-          style={{
-            background: 'transparent',
-            position: 'absolute',
-            top: 0, left: 0,
-            width: '100%', height: '100%',
-          }}
-          gl={{
-            alpha: true,
-            antialias: true,
-            toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 1.2,
-          }}
-          shadows
-        >
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[5, 8, 5]} intensity={2.5} castShadow />
-          <directionalLight position={[-5, 3, -5]} intensity={0.8} />
-          <spotLight position={[0, 10, -8]} intensity={3} angle={0.4} penumbra={0.5} color="#ffffff" />
-          <pointLight position={[0, -5, 3]} intensity={0.6} color="#8888ff" />
-          <Environment preset="studio" environmentIntensity={1.5} />
+        <CanvasErrorBoundary>
+          <Canvas
+            camera={{ position: [0, 0, 6], fov: 40 }}
+            style={{
+              background: 'transparent',
+              position: 'absolute',
+              top: 0, left: 0,
+              width: '100%', height: '100%',
+            }}
+            gl={{
+              alpha: true,
+              antialias: true,
+              preserveDrawingBuffer: true,
+              powerPreference: 'high-performance',
+              failIfMajorPerformanceCaveat: false,
+              toneMapping: THREE.ACESFilmicToneMapping,
+              toneMappingExposure: 1.2,
+            }}
+            dpr={[1, 2]}
+            frameloop="always"
+            shadows={false}
+          >
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[5, 8, 5]} intensity={2.5} />
+            <directionalLight position={[-5, 3, -5]} intensity={0.8} />
+            <spotLight position={[0, 10, -8]} intensity={3} angle={0.4} penumbra={0.5} color="#ffffff" />
+            <pointLight position={[0, -5, 3]} intensity={0.6} color="#8888ff" />
 
-          <Suspense fallback={null}>
-            <SodaCan
-              ref={canRef}
-              flavor={current.key}
-              scale={0.7}
-              position={[0, 0, 0]}
-              instantSwap
-            />
-          </Suspense>
-        </Canvas>
+            <Suspense fallback={null}>
+              <SodaCan
+                ref={canRef}
+                flavor={current.key}
+                scale={0.7}
+                position={[0, 0, 0]}
+                instantSwap
+              />
+            </Suspense>
+          </Canvas>
+        </CanvasErrorBoundary>
       </div>
 
       {/* ── Flavor heading ── */}
@@ -114,7 +120,7 @@ export default function FlavorCarousel() {
         >
           Choose Your Flavor
         </p>
-        <h3
+        <h2
           key={current.key}
           className="text-6xl md:text-8xl font-display font-black italic"
           style={{
@@ -123,7 +129,7 @@ export default function FlavorCarousel() {
           }}
         >
           {current.name}
-        </h3>
+        </h2>
       </div>
 
       {/* ── LEFT arrow ── */}

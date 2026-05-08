@@ -1,8 +1,8 @@
 import React, { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import SodaCan from './SodaCan';
+import CanvasErrorBoundary from './CanvasErrorBoundary';
 
 export default function HeroSection() {
   return (
@@ -13,45 +13,51 @@ export default function HeroSection() {
     >
       {/* 3D Canvas */}
       <div className="absolute inset-0 z-10">
-        <Canvas
-          camera={{ position: [0, 0, 6], fov: 40 }}
-          style={{
-            background: 'transparent',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-          }}
-          gl={{
-            alpha: true,
-            antialias: true,
-            toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 1.2,
-          }}
-          shadows
-        >
-          {/* Key light */}
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[5, 8, 5]} intensity={2.5} castShadow />
-          {/* Fill light */}
-          <directionalLight position={[-5, 3, -5]} intensity={0.8} />
-          {/* Rim light */}
-          <spotLight
-            position={[0, 10, -8]}
-            intensity={3}
-            angle={0.4}
-            penumbra={0.5}
-            color="#ffffff"
-          />
-          {/* Bottom bounce */}
-          <pointLight position={[0, -5, 3]} intensity={0.6} color="#8888ff" />
-          <Environment preset="studio" environmentIntensity={1.5} />
+        <CanvasErrorBoundary>
+          <Canvas
+            camera={{ position: [0, 0, 6], fov: 40 }}
+            style={{
+              background: 'transparent',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+            }}
+            gl={{
+              alpha: true,
+              antialias: true,
+              preserveDrawingBuffer: true,
+              powerPreference: 'high-performance',
+              failIfMajorPerformanceCaveat: false,
+              toneMapping: THREE.ACESFilmicToneMapping,
+              toneMappingExposure: 1.2,
+            }}
+            dpr={[1, 2]}
+            frameloop="always"
+            shadows={false}
+          >
+            {/* Key light */}
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[5, 8, 5]} intensity={2.5} />
+            {/* Fill light */}
+            <directionalLight position={[-5, 3, -5]} intensity={0.8} />
+            {/* Rim light */}
+            <spotLight
+              position={[0, 10, -8]}
+              intensity={3}
+              angle={0.4}
+              penumbra={0.5}
+              color="#ffffff"
+            />
+            {/* Bottom bounce */}
+            <pointLight position={[0, -5, 3]} intensity={0.6} color="#8888ff" />
 
-          <Suspense fallback={null}>
-            <SodaCan flavor="blackcherry" scale={0.7} position={[0, 0, 0]} />
-          </Suspense>
-        </Canvas>
+            <Suspense fallback={null}>
+              <SodaCan flavor="blackcherry" scale={0.7} position={[0, 0, 0]} />
+            </Suspense>
+          </Canvas>
+        </CanvasErrorBoundary>
       </div>
 
       {/* Brand name — top left */}
